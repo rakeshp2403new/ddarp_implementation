@@ -1,0 +1,235 @@
+groups:
+  - name: ddarp.rules
+    rules:
+      # High OWL Latency Alert
+      - alert: HighOWLLatency
+        expr: ddarp_owl_latency_ms > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: ddarp
+        annotations:
+          summary: "High OWL latency detected"
+          description: "OWL latency between {{ $labels.source_node }} and {{ $labels.dest_node }} is {{ $value }}ms"
+
+      # Critical OWL Latency Alert
+      - alert: CriticalOWLLatency
+        expr: ddarp_owl_latency_ms > 20
+        for: 1m
+        labels:
+          severity: critical
+          service: ddarp
+        annotations:
+          summary: "Critical OWL latency detected"
+          description: "OWL latency between {{ $labels.source_node }} and {{ $labels.dest_node }} is {{ $value }}ms"
+
+      # High OWL Packet Loss Alert
+      - alert: HighOWLPacketLoss
+        expr: ddarp_owl_packet_loss_percent > 1
+        for: 2m
+        labels:
+          severity: warning
+          service: ddarp
+        annotations:
+          summary: "High OWL packet loss detected"
+          description: "OWL packet loss between {{ $labels.source_node }} and {{ $labels.dest_node }} is {{ $value }}%"
+
+      # Critical OWL Packet Loss Alert
+      - alert: CriticalOWLPacketLoss
+        expr: ddarp_owl_packet_loss_percent > 5
+        for: 1m
+        labels:
+          severity: critical
+          service: ddarp
+        annotations:
+          summary: "Critical OWL packet loss detected"
+          description: "OWL packet loss between {{ $labels.source_node }} and {{ $labels.dest_node }} is {{ $value }}%"
+
+      # DDARP Node Down Alert
+      - alert: DDARPNodeDown
+        expr: ddarp_node_health == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: ddarp
+        annotations:
+          summary: "DDARP node is down"
+          description: "DDARP node {{ $labels.node_id }} has been down for more than 30 seconds"
+
+      # High OWL Jitter Alert
+      - alert: HighOWLJitter
+        expr: ddarp_owl_jitter_ms > 5
+        for: 2m
+        labels:
+          severity: warning
+          service: ddarp
+        annotations:
+          summary: "High OWL jitter detected"
+          description: "OWL jitter between {{ $labels.source_node }} and {{ $labels.dest_node }} is {{ $value }}ms"
+
+      # Empty Routing Table Alert
+      - alert: EmptyRoutingTable
+        expr: ddarp_routing_table_size == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: ddarp
+        annotations:
+          summary: "Empty routing table detected"
+          description: "DDARP node {{ $labels.node_id }} has an empty routing table"
+
+      # BGP Session Down Alert
+      - alert: BGPSessionDown
+        expr: ddarp_bgp_session_status == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: ddarp
+        annotations:
+          summary: "BGP session is down"
+          description: "BGP session between {{ $labels.node_id }} and {{ $labels.neighbor }} is down"
+
+      # Tunnel Down Alert
+      - alert: TunnelDown
+        expr: ddarp_tunnel_status == 0
+        for: 1m
+        labels:
+          severity: warning
+          service: ddarp
+        annotations:
+          summary: "WireGuard tunnel is down"
+          description: "Tunnel between {{ $labels.node_id }} and {{ $labels.peer_id }} is down"
+
+      # High Path Computation Time Alert
+      - alert: SlowPathComputation
+        expr: ddarp_path_computation_duration_milliseconds > 100
+        for: 2m
+        labels:
+          severity: warning
+          service: ddarp
+        annotations:
+          summary: "Slow path computation detected"
+          description: "Path computation on {{ $labels.node_id }} to {{ $labels.destination }} took {{ $value }}ms"
+
+      # High Error Rate Alert
+      - alert: HighErrorRate
+        expr: rate(ddarp_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: ddarp
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate on {{ $labels.node_id }} is {{ $value | humanize }} errors/sec"
+
+      # High CPU Usage Alert
+      - alert: HighCPUUsage
+        expr: ddarp_cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: ddarp
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage on {{ $labels.node_id }} is {{ $value }}%"
+
+      # High Memory Usage Alert
+      - alert: HighMemoryUsage
+        expr: ddarp_memory_usage_percent > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: ddarp
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage on {{ $labels.node_id }} is {{ $value }}%"
+
+      # Critical Memory Usage Alert
+      - alert: CriticalMemoryUsage
+        expr: ddarp_memory_usage_percent > 95
+        for: 1m
+        labels:
+          severity: critical
+          service: ddarp
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Memory usage on {{ $labels.node_id }} is {{ $value }}%"
+
+      # Container Health Alert
+      - alert: ContainerUnhealthy
+        expr: ddarp_container_health_status == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: ddarp
+        annotations:
+          summary: "Container is unhealthy"
+          description: "Container {{ $labels.container }} on {{ $labels.node_id }} is unhealthy"
+
+      # BGP Convergence Time Alert
+      - alert: SlowBGPConvergence
+        expr: ddarp_bgp_convergence_duration_milliseconds > 5000
+        for: 1m
+        labels:
+          severity: warning
+          service: ddarp
+        annotations:
+          summary: "Slow BGP convergence detected"
+          description: "BGP convergence between {{ $labels.node_id }} and {{ $labels.neighbor }} took {{ $value }}ms"
+
+      # Route Update Storm Alert
+      - alert: RouteUpdateStorm
+        expr: rate(ddarp_route_updates_total[1m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: ddarp
+        annotations:
+          summary: "Route update storm detected"
+          description: "High route update rate on {{ $labels.node_id }}: {{ $value | humanize }} updates/sec"
+
+      # Algorithm Efficiency Alert
+      - alert: LowAlgorithmEfficiency
+        expr: ddarp_algorithm_efficiency_ratio < 0.7
+        for: 5m
+        labels:
+          severity: warning
+          service: ddarp
+        annotations:
+          summary: "Low algorithm efficiency detected"
+          description: "Algorithm efficiency on {{ $labels.node_id }} is {{ $value | humanizePercentage }}"
+
+  - name: monitoring.rules
+    rules:
+      # Prometheus Target Down
+      - alert: PrometheusTargetDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: monitoring
+        annotations:
+          summary: "Prometheus target is down"
+          description: "{{ $labels.job }} target {{ $labels.instance }} is down"
+
+      # Elasticsearch Cluster Health
+      - alert: ElasticsearchClusterUnhealthy
+        expr: elasticsearch_cluster_health_status{color="red"} == 1
+        for: 2m
+        labels:
+          severity: critical
+          service: monitoring
+        annotations:
+          summary: "Elasticsearch cluster is unhealthy"
+          description: "Elasticsearch cluster health is RED"
+
+      # High Disk Usage on Monitoring Components
+      - alert: HighDiskUsageMonitoring
+        expr: (node_filesystem_avail_bytes{job="node-exporter"} / node_filesystem_size_bytes{job="node-exporter"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          service: monitoring
+        annotations:
+          summary: "Low disk space on monitoring node"
+          description: "Disk usage is above 90% on {{ $labels.instance }}"

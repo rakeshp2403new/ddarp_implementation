@@ -1,0 +1,32 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install additional packages for real-time pipeline
+RUN pip install --no-cache-dir websockets asyncio aiohttp psutil
+
+# Copy application code
+COPY src/ ./src/
+
+# Create logs directory
+RUN mkdir -p /var/log/ddarp
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV WEBSOCKET_PORT=8765
+ENV PROMETHEUS_URL=http://prometheus:9090
+ENV ELASTICSEARCH_URL=http://elasticsearch:9200
+
+# Expose WebSocket port
+EXPOSE 8765
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD python -c "import socket; socket.create_connection(('localhost', 8765), timeout=5).close()" || exit 1
+
+# Run the real-time pipeline
+CMD ["python", "-m", "src.monitoring.realtime_pipeline"]

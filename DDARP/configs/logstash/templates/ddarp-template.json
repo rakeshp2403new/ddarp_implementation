@@ -1,0 +1,137 @@
+{
+  "index_patterns": ["ddarp-*"],
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "index.refresh_interval": "5s",
+    "index.codec": "best_compression"
+  },
+  "mappings": {
+    "properties": {
+      "@timestamp": {
+        "type": "date"
+      },
+      "timestamp": {
+        "type": "date"
+      },
+      "log_level": {
+        "type": "keyword"
+      },
+      "log_category": {
+        "type": "keyword"
+      },
+      "message": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "node_id": {
+        "type": "keyword"
+      },
+      "node": {
+        "type": "keyword"
+      },
+      "correlation_id": {
+        "type": "keyword"
+      },
+      "trace_id": {
+        "type": "keyword"
+      },
+      "details": {
+        "type": "object",
+        "dynamic": true
+      },
+      "latency": {
+        "type": "float"
+      },
+      "jitter": {
+        "type": "float"
+      },
+      "packet_loss": {
+        "type": "float"
+      },
+      "peer": {
+        "type": "keyword"
+      },
+      "peer_id": {
+        "type": "keyword"
+      },
+      "computation_time": {
+        "type": "float"
+      },
+      "destination": {
+        "type": "keyword"
+      },
+      "algorithm": {
+        "type": "keyword"
+      },
+      "bgp_neighbor": {
+        "type": "keyword"
+      },
+      "bgp_status": {
+        "type": "keyword"
+      },
+      "bgp_event_type": {
+        "type": "keyword"
+      },
+      "tunnel_peer": {
+        "type": "keyword"
+      },
+      "tunnel_interface": {
+        "type": "keyword"
+      },
+      "tunnel_status": {
+        "type": "keyword"
+      },
+      "cpu_usage": {
+        "type": "float"
+      },
+      "memory_usage": {
+        "type": "float"
+      },
+      "error_type": {
+        "type": "keyword"
+      },
+      "geoip": {
+        "properties": {
+          "location": {
+            "type": "geo_point"
+          },
+          "city_name": {
+            "type": "keyword"
+          },
+          "country_name": {
+            "type": "keyword"
+          }
+        }
+      },
+      "container_name": {
+        "type": "keyword"
+      },
+      "container_message": {
+        "type": "text"
+      },
+      "container_timestamp": {
+        "type": "date"
+      },
+      "syslog_program": {
+        "type": "keyword"
+      },
+      "syslog_server": {
+        "type": "keyword"
+      },
+      "syslog_message": {
+        "type": "text"
+      },
+      "syslog_timestamp": {
+        "type": "date",
+        "format": "MMM dd HH:mm:ss||MMM  d HH:mm:ss"
+      },
+      "tags": {
+        "type": "keyword"
+      },
+      "logstash_version": {
+        "type": "keyword"
+      }
+    }
+  }
+}

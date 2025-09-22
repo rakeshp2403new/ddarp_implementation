@@ -1,0 +1,46 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies including WireGuard
+RUN apt-get update && apt-get install -y \
+    gcc \
+    wireguard-tools \
+    iptables \
+    iproute2 \
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY src/ ./src/
+
+# Create directories for WireGuard
+RUN mkdir -p /etc/wireguard
+
+# Create entrypoint script
+COPY docker/entrypoint-wireguard.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV NODE_ID=node1
+ENV NODE_TYPE=regular
+ENV OWL_PORT=8080
+ENV API_PORT=8000
+ENV SECRET_KEY=ddarp_secret_key_2024
+ENV WG_INTERFACE=wg0
+ENV WG_IP=10.0.0.1
+
+# Expose ports
+EXPOSE 8000 8080/udp 51820/udp
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
+
+# Run with privileges needed for WireGuard
+ENTRYPOINT ["/entrypoint.sh"]

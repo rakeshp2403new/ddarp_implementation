@@ -1,0 +1,59 @@
+{
+  "version": "8.0.0",
+  "objects": [
+    {
+      "id": "ddarp-logs-*",
+      "type": "index-pattern",
+      "attributes": {
+        "title": "ddarp-logs-*",
+        "timeFieldName": "@timestamp",
+        "fields": "[{\"name\":\"@timestamp\",\"type\":\"date\",\"esTypes\":[\"date\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"log_level\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"log_category\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"message\",\"type\":\"string\",\"esTypes\":[\"text\"],\"searchable\":true,\"aggregatable\":false},{\"name\":\"node_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"correlation_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"latency\",\"type\":\"number\",\"esTypes\":[\"float\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"jitter\",\"type\":\"number\",\"esTypes\":[\"float\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"packet_loss\",\"type\":\"number\",\"esTypes\":[\"float\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"peer_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"computation_time\",\"type\":\"number\",\"esTypes\":[\"float\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"destination\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"algorithm\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"bgp_neighbor\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"bgp_status\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"tunnel_interface\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"tunnel_status\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"cpu_usage\",\"type\":\"number\",\"esTypes\":[\"float\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"memory_usage\",\"type\":\"number\",\"esTypes\":[\"float\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"geoip.location\",\"type\":\"geo_point\",\"esTypes\":[\"geo_point\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"geoip.city_name\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true}]"
+      }
+    },
+    {
+      "id": "ddarp-owl_measurement-*",
+      "type": "index-pattern",
+      "attributes": {
+        "title": "ddarp-owl_measurement-*",
+        "timeFieldName": "@timestamp",
+        "fields": "[{\"name\":\"@timestamp\",\"type\":\"date\",\"esTypes\":[\"date\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"node_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"peer_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"latency\",\"type\":\"number\",\"esTypes\":[\"float\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"jitter\",\"type\":\"number\",\"esTypes\":[\"float\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"packet_loss\",\"type\":\"number\",\"esTypes\":[\"float\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"correlation_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"geoip.location\",\"type\":\"geo_point\",\"esTypes\":[\"geo_point\"],\"searchable\":true,\"aggregatable\":true}]"
+      }
+    },
+    {
+      "id": "ddarp-path_computation-*",
+      "type": "index-pattern",
+      "attributes": {
+        "title": "ddarp-path_computation-*",
+        "timeFieldName": "@timestamp",
+        "fields": "[{\"name\":\"@timestamp\",\"type\":\"date\",\"esTypes\":[\"date\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"node_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"destination\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"computation_time\",\"type\":\"number\",\"esTypes\":[\"float\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"algorithm\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"correlation_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true}]"
+      }
+    },
+    {
+      "id": "ddarp-bgp_event-*",
+      "type": "index-pattern",
+      "attributes": {
+        "title": "ddarp-bgp_event-*",
+        "timeFieldName": "@timestamp",
+        "fields": "[{\"name\":\"@timestamp\",\"type\":\"date\",\"esTypes\":[\"date\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"node_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"bgp_neighbor\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"bgp_status\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"bgp_event_type\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"correlation_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true}]"
+      }
+    },
+    {
+      "id": "ddarp-tunnel_lifecycle-*",
+      "type": "index-pattern",
+      "attributes": {
+        "title": "ddarp-tunnel_lifecycle-*",
+        "timeFieldName": "@timestamp",
+        "fields": "[{\"name\":\"@timestamp\",\"type\":\"date\",\"esTypes\":[\"date\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"node_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"tunnel_peer\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"tunnel_interface\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"tunnel_status\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"correlation_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true}]"
+      }
+    },
+    {
+      "id": "ddarp-system_health-*",
+      "type": "index-pattern",
+      "attributes": {
+        "title": "ddarp-system_health-*",
+        "timeFieldName": "@timestamp",
+        "fields": "[{\"name\":\"@timestamp\",\"type\":\"date\",\"esTypes\":[\"date\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"node_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"cpu_usage\",\"type\":\"number\",\"esTypes\":[\"float\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"memory_usage\",\"type\":\"number\",\"esTypes\":[\"float\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"error_type\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true},{\"name\":\"correlation_id\",\"type\":\"string\",\"esTypes\":[\"keyword\"],\"searchable\":true,\"aggregatable\":true}]"
+      }
+    }
+  ]
+}

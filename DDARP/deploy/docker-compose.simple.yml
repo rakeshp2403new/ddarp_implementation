@@ -1,0 +1,172 @@
+version: '3.8'
+
+services:
+  # Core DDARP Nodes (3 nodes only)
+  ddarp-node1:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ddarp-node1
+    hostname: node1
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    devices:
+      - /dev/net/tun
+    volumes:
+      - ../configs/node1:/etc/ddarp
+      - ../configs/bird/node1.conf:/etc/bird/bird.conf
+      - ../configs/wireguard/node1:/etc/wireguard
+      - ../logs/node1:/var/log/ddarp
+      - /lib/modules:/lib/modules:ro
+    environment:
+      - NODE_ID=node1
+      - PEERS=node2,node3
+      - LOG_LEVEL=INFO
+      - PROMETHEUS_PORT=9090
+      - WEBSOCKET_PORT=8765
+      - API_PORT=8080
+      - BGP_ASN=65001
+      - ROUTER_ID=10.255.1.1
+    networks:
+      ddarp_network:
+        ipv4_address: 172.20.0.10
+    ports:
+      - "8081:8080"
+      - "9091:9090"
+      - "8766:8765"
+      - "1791:179"
+    restart: unless-stopped
+
+  ddarp-node2:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ddarp-node2
+    hostname: node2
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    devices:
+      - /dev/net/tun
+    volumes:
+      - ../configs/node2:/etc/ddarp
+      - ../configs/bird/node2.conf:/etc/bird/bird.conf
+      - ../configs/wireguard/node2:/etc/wireguard
+      - ../logs/node2:/var/log/ddarp
+      - /lib/modules:/lib/modules:ro
+    environment:
+      - NODE_ID=node2
+      - PEERS=node1,node3
+      - LOG_LEVEL=INFO
+      - PROMETHEUS_PORT=9090
+      - WEBSOCKET_PORT=8765
+      - API_PORT=8080
+      - BGP_ASN=65002
+      - ROUTER_ID=10.255.2.1
+    networks:
+      ddarp_network:
+        ipv4_address: 172.20.0.11
+    ports:
+      - "8082:8080"
+      - "9092:9090"
+      - "8767:8765"
+      - "1792:179"
+    restart: unless-stopped
+
+  ddarp-node3:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ddarp-node3
+    hostname: node3
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    devices:
+      - /dev/net/tun
+    volumes:
+      - ../configs/node3:/etc/ddarp
+      - ../configs/bird/node3.conf:/etc/bird/bird.conf
+      - ../configs/wireguard/node3:/etc/wireguard
+      - ../logs/node3:/var/log/ddarp
+      - /lib/modules:/lib/modules:ro
+    environment:
+      - NODE_ID=node3
+      - PEERS=node1,node2
+      - LOG_LEVEL=INFO
+      - PROMETHEUS_PORT=9090
+      - WEBSOCKET_PORT=8765
+      - API_PORT=8080
+      - BGP_ASN=65003
+      - ROUTER_ID=10.255.3.1
+    networks:
+      ddarp_network:
+        ipv4_address: 172.20.0.12
+    ports:
+      - "8083:8080"
+      - "9093:9090"
+      - "8768:8765"
+      - "1793:179"
+    restart: unless-stopped
+
+  # Essential Monitoring (Optional)
+  prometheus:
+    image: prom/prometheus:v2.40.0
+    container_name: ddarp-prometheus
+    hostname: prometheus
+    volumes:
+      - ../configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../configs/prometheus/rules:/etc/prometheus/rules
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.size=2GB'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      ddarp_network:
+        ipv4_address: 172.20.0.20
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: ddarp-grafana
+    hostname: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=ddarp2023
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-worldmap-panel,grafana-piechart-panel
+    volumes:
+      - ../configs/grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    networks:
+      ddarp_network:
+        ipv4_address: 172.20.0.21
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+networks:
+  ddarp_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local

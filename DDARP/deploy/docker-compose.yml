@@ -1,0 +1,110 @@
+
+services:
+  node1:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: ddarp_node1
+    environment:
+      - NODE_ID=node1
+      - NODE_TYPE=regular
+      - OWL_PORT=8080
+      - API_PORT=8000
+      - SECRET_KEY=ddarp_secret_key_2024
+    ports:
+      - "8001:8000"
+      - "8081:8080/udp"
+    networks:
+      ddarp_network:
+        ipv4_address: 172.20.0.10
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      - prometheus
+
+  node2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: ddarp_node2
+    environment:
+      - NODE_ID=node2
+      - NODE_TYPE=regular
+      - OWL_PORT=8080
+      - API_PORT=8000
+      - SECRET_KEY=ddarp_secret_key_2024
+    ports:
+      - "8002:8000"
+      - "8082:8080/udp"
+    networks:
+      ddarp_network:
+        ipv4_address: 172.20.0.11
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      - prometheus
+
+  border1:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: ddarp_border1
+    environment:
+      - NODE_ID=border1
+      - NODE_TYPE=border
+      - OWL_PORT=8080
+      - API_PORT=8000
+      - SECRET_KEY=ddarp_secret_key_2024
+    ports:
+      - "8003:8000"
+      - "8083:8080/udp"
+    networks:
+      ddarp_network:
+        ipv4_address: 172.20.0.12
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      - prometheus
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ddarp_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=7d'
+    networks:
+      ddarp_network:
+        ipv4_address: 172.20.0.20
+    restart: unless-stopped
+
+networks:
+  ddarp_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+
+volumes:
+  prometheus_data:
