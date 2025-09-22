@@ -1,0 +1,88 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'ddarp'
+    replica: '1'
+
+rule_files:
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # DDARP Nodes
+  - job_name: 'ddarp-nodes'
+    static_configs:
+      - targets:
+          - 'ddarp-node1:8080'
+          - 'ddarp-node2:8080'
+          - 'ddarp-node3:8080'
+    scrape_interval: 5s
+    metrics_path: /metrics
+    params:
+      format: ['prometheus']
+
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 5s
+
+  # cAdvisor for container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 5s
+
+  # Grafana metrics
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+    metrics_path: /metrics
+
+  # Elasticsearch metrics
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: ['elasticsearch:9200']
+    metrics_path: /_prometheus/metrics
+    scrape_interval: 30s
+
+  # Logstash metrics
+  - job_name: 'logstash'
+    static_configs:
+      - targets: ['logstash:9600']
+    metrics_path: /_node/stats
+    scrape_interval: 30s
+
+  # Alertmanager metrics
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+
+  # Real-time pipeline WebSocket metrics
+  - job_name: 'ddarp-realtime'
+    static_configs:
+      - targets: ['ddarp-realtime:8765']
+    metrics_path: /metrics
+    scrape_interval: 10s
+
+# Remote write configuration for long-term storage (optional)
+# remote_write:
+#   - url: "http://long-term-storage:9090/api/v1/write"
+#     queue_config:
+#       max_samples_per_send: 1000
+#       max_shards: 200
+#       capacity: 2500
+
+# Recording rules for performance optimization
+# recording_rules: []

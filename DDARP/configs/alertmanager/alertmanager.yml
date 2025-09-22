@@ -1,0 +1,91 @@
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'ddarp-alerts@example.com'
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'web.hook'
+  routes:
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      repeat_interval: 5m
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 30s
+      repeat_interval: 30m
+    - match:
+        service: ddarp
+      receiver: 'ddarp-alerts'
+    - match:
+        service: monitoring
+      receiver: 'monitoring-alerts'
+
+receivers:
+  - name: 'web.hook'
+    webhook_configs:
+      - url: 'http://127.0.0.1:5001/'
+
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'critical-alerts@example.com'
+        subject: '[CRITICAL] DDARP Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Instance: {{ .Labels.instance }}
+          Time: {{ .StartsAt }}
+          {{ end }}
+    # slack_configs:
+    #   - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+    #     channel: '#ddarp-critical'
+    #     title: 'CRITICAL DDARP Alert'
+    #     text: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+    #     color: 'danger'
+
+  - name: 'warning-alerts'
+    email_configs:
+      - to: 'warning-alerts@example.com'
+        subject: '[WARNING] DDARP Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Instance: {{ .Labels.instance }}
+          Time: {{ .StartsAt }}
+          {{ end }}
+
+  - name: 'ddarp-alerts'
+    webhook_configs:
+      - url: 'http://ddarp-realtime:8765/alerts'
+        send_resolved: true
+
+  - name: 'monitoring-alerts'
+    email_configs:
+      - to: 'monitoring-team@example.com'
+        subject: '[MONITORING] Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Instance: {{ .Labels.instance }}
+          Time: {{ .StartsAt }}
+          {{ end }}
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'

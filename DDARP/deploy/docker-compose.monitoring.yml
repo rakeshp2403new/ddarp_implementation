@@ -1,0 +1,345 @@
+version: '3.8'
+
+services:
+  # Core DDARP Nodes
+  ddarp-node1:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ddarp-node1
+    hostname: node1
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    devices:
+      - /dev/net/tun
+    volumes:
+      - ../configs/node1:/etc/ddarp
+      - ../configs/bird/node1.conf:/etc/bird/bird.conf
+      - ../configs/wireguard/node1:/etc/wireguard
+      - ../logs/node1:/var/log/ddarp
+      - /lib/modules:/lib/modules:ro
+    environment:
+      - NODE_ID=node1
+      - PEERS=node2,node3
+      - LOG_LEVEL=INFO
+      - PROMETHEUS_PORT=9090
+      - WEBSOCKET_PORT=8765
+      - API_PORT=8080
+      - BGP_ASN=65001
+      - ROUTER_ID=10.255.1.1
+    networks:
+      ddarp_network:
+        ipv4_address: 172.22.0.10
+    ports:
+      - "8081:8080"
+      - "9091:9090"
+      - "8766:8765"
+      - "1791:179"
+    depends_on:
+      - prometheus
+      - elasticsearch
+
+  ddarp-node2:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ddarp-node2
+    hostname: node2
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    devices:
+      - /dev/net/tun
+    volumes:
+      - ../configs/node2:/etc/ddarp
+      - ../configs/bird/node2.conf:/etc/bird/bird.conf
+      - ../configs/wireguard/node2:/etc/wireguard
+      - ../logs/node2:/var/log/ddarp
+      - /lib/modules:/lib/modules:ro
+    environment:
+      - NODE_ID=node2
+      - PEERS=node1,node3
+      - LOG_LEVEL=INFO
+      - PROMETHEUS_PORT=9090
+      - WEBSOCKET_PORT=8765
+      - API_PORT=8080
+      - BGP_ASN=65002
+      - ROUTER_ID=10.255.2.1
+    networks:
+      ddarp_network:
+        ipv4_address: 172.22.0.11
+    ports:
+      - "8082:8080"
+      - "9092:9090"
+      - "8767:8765"
+      - "1792:179"
+    depends_on:
+      - prometheus
+      - elasticsearch
+
+  ddarp-node3:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ddarp-node3
+    hostname: node3
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    devices:
+      - /dev/net/tun
+    volumes:
+      - ../configs/node3:/etc/ddarp
+      - ../configs/bird/node3.conf:/etc/bird/bird.conf
+      - ../configs/wireguard/node3:/etc/wireguard
+      - ../logs/node3:/var/log/ddarp
+      - /lib/modules:/lib/modules:ro
+    environment:
+      - NODE_ID=node3
+      - PEERS=node1,node2
+      - LOG_LEVEL=INFO
+      - PROMETHEUS_PORT=9090
+      - WEBSOCKET_PORT=8765
+      - API_PORT=8080
+      - BGP_ASN=65003
+      - ROUTER_ID=10.255.3.1
+    networks:
+      ddarp_network:
+        ipv4_address: 172.22.0.12
+    ports:
+      - "8083:8080"
+      - "9094:9090"
+      - "8768:8765"
+      - "1793:179"
+    depends_on:
+      - prometheus
+      - elasticsearch
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:v2.40.0
+    container_name: ddarp-prometheus
+    hostname: prometheus
+    volumes:
+      - ../configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../configs/prometheus/rules:/etc/prometheus/rules
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.size=10GB'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      ddarp_network:
+        ipv4_address: 172.22.0.20
+    ports:
+      - "9096:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: ddarp-grafana
+    hostname: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=ddarp2023
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-worldmap-panel,grafana-piechart-panel
+    volumes:
+      - ../configs/grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    networks:
+      ddarp_network:
+        ipv4_address: 172.22.0.21
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # ELK Stack
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0
+    container_name: ddarp-elasticsearch
+    hostname: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - cluster.name=ddarp-cluster
+      - node.name=ddarp-es-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      ddarp_network:
+        ipv4_address: 172.22.0.30
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    restart: unless-stopped
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.0.0
+    container_name: ddarp-logstash
+    hostname: logstash
+    volumes:
+      - ../configs/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ../configs/logstash/templates:/usr/share/logstash/templates
+      - ../logs:/var/log/ddarp:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/log:/var/log/containers:ro
+    environment:
+      - "LS_JAVA_OPTS=-Xmx1g -Xms1g"
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      ddarp_network:
+        ipv4_address: 172.22.0.31
+    ports:
+      - "5000:5000"
+      - "5044:5044"
+      - "5514:5514/udp"
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.0.0
+    container_name: ddarp-kibana
+    hostname: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_NAME=ddarp-kibana
+      - SERVER_HOST=0.0.0.0
+      - LOGGING_ROOT_LEVEL=warn
+    volumes:
+      - ../configs/kibana/index-patterns:/usr/share/kibana/config/index-patterns
+      - ../configs/kibana/dashboards:/usr/share/kibana/config/dashboards
+      - kibana_data:/usr/share/kibana/data
+    networks:
+      ddarp_network:
+        ipv4_address: 172.22.0.32
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+      - logstash
+    restart: unless-stopped
+
+  # Additional Monitoring Tools
+  node-exporter:
+    image: prom/node-exporter:v1.6.0
+    container_name: ddarp-node-exporter
+    hostname: node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      ddarp_network:
+        ipv4_address: 172.22.0.40
+    ports:
+      - "9100:9100"
+    restart: unless-stopped
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    container_name: ddarp-cadvisor
+    hostname: cadvisor
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /cgroup:/cgroup:ro
+    networks:
+      ddarp_network:
+        ipv4_address: 172.22.0.41
+    ports:
+      - "8084:8080"
+    restart: unless-stopped
+
+  # Alerting
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: ddarp-alertmanager
+    hostname: alertmanager
+    volumes:
+      - ../configs/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9095'
+    networks:
+      ddarp_network:
+        ipv4_address: 172.22.0.50
+    ports:
+      - "9095:9093"
+    restart: unless-stopped
+
+  # Real-time Data Pipeline
+  ddarp-realtime:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.realtime
+    container_name: ddarp-realtime-pipeline
+    hostname: realtime-pipeline
+    volumes:
+      - ../src/monitoring:/app/monitoring
+      - ../logs:/var/log/ddarp:ro
+    environment:
+      - WEBSOCKET_PORT=8765
+      - PROMETHEUS_URL=http://prometheus:9090
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+    networks:
+      ddarp_network:
+        ipv4_address: 172.22.0.60
+    ports:
+      - "8765:8765"
+    depends_on:
+      - prometheus
+      - elasticsearch
+    restart: unless-stopped
+
+networks:
+  ddarp_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  kibana_data:
+    driver: local
+  alertmanager_data:
+    driver: local

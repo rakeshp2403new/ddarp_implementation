@@ -1,0 +1,148 @@
+services:
+  node1:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.enhanced
+    container_name: ddarp_enhanced_node1
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - NODE_ID=node1
+      - NODE_TYPE=regular
+      - OWL_PORT=8080
+      - API_PORT=8000
+      - SECRET_KEY=ddarp_secret_key_2024
+      - WG_INTERFACE=wg0
+      - WG_IP=10.0.0.1
+      - BIRD_ASN=65001
+      - BIRD_ROUTER_ID=10.255.1.1
+    ports:
+      - "8001:8000"
+      - "8081:8080/udp"
+      - "51821:51820/udp"
+      - "1791:179"  # BGP port
+    networks:
+      ddarp_network:
+        ipv4_address: 172.20.0.10
+    volumes:
+      - ./configs/bird/node1:/etc/bird
+      - ./configs/wireguard/node1:/etc/wireguard
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      - prometheus
+
+  node2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.enhanced
+    container_name: ddarp_enhanced_node2
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - NODE_ID=node2
+      - NODE_TYPE=regular
+      - OWL_PORT=8080
+      - API_PORT=8000
+      - SECRET_KEY=ddarp_secret_key_2024
+      - WG_INTERFACE=wg0
+      - WG_IP=10.0.0.2
+      - BIRD_ASN=65002
+      - BIRD_ROUTER_ID=10.255.2.1
+    ports:
+      - "8002:8000"
+      - "8082:8080/udp"
+      - "51822:51820/udp"
+      - "1792:179"  # BGP port
+    networks:
+      ddarp_network:
+        ipv4_address: 172.20.0.11
+    volumes:
+      - ./configs/bird/node2:/etc/bird
+      - ./configs/wireguard/node2:/etc/wireguard
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      - prometheus
+
+  border1:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.enhanced
+    container_name: ddarp_enhanced_border1
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - NODE_ID=border1
+      - NODE_TYPE=border
+      - OWL_PORT=8080
+      - API_PORT=8000
+      - SECRET_KEY=ddarp_secret_key_2024
+      - WG_INTERFACE=wg0
+      - WG_IP=10.0.0.3
+      - BIRD_ASN=65003
+      - BIRD_ROUTER_ID=10.255.3.1
+    ports:
+      - "8003:8000"
+      - "8083:8080/udp"
+      - "51823:51820/udp"
+      - "1793:179"  # BGP port
+    networks:
+      ddarp_network:
+        ipv4_address: 172.20.0.12
+    volumes:
+      - ./configs/bird/border1:/etc/bird
+      - ./configs/wireguard/border1:/etc/wireguard
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      - prometheus
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ddarp_enhanced_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=7d'
+    networks:
+      ddarp_network:
+        ipv4_address: 172.20.0.20
+    restart: unless-stopped
+
+networks:
+  ddarp_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+
+volumes:
+  prometheus_data:
