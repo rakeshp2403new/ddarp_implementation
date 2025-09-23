@@ -9,6 +9,7 @@ The original configuration had port conflicts. Here are the **corrected URLs** t
 | Service | URL | Credentials |
 |---------|-----|-------------|
 | **Grafana** | http://localhost:3000 | admin/ddarp2023 |
+| **OWL Matrix Dashboard** | http://localhost:3000/d/owl-matrix-table/owl-matrix-table | admin/ddarp2023 |
 | **Prometheus** | http://localhost:9096 | - |
 | **Kibana** | http://localhost:5601 | - |
 | **Alertmanager** | http://localhost:9095 | - |
