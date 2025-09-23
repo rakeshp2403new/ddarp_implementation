@@ -53,7 +53,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Real-time OWL latency matrix showing end-to-end measurements between all node pairs. Diagonal shows 0ms (self-to-self latency).",
+      "description": "Real-time OWL latency measurements showing end-to-end latency between all node pairs in a table format.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -150,7 +150,7 @@
           "refId": "A"
         }
       ],
-      "title": "OWL Latency Matrix",
+      "title": "OWL Latency Table (Source → Destination)",
       "transformations": [
         {
           "id": "organize",
@@ -163,55 +163,284 @@
             },
             "indexByName": {},
             "renameByName": {
-              "source_node": "Source",
-              "dest_node": "Destination",
+              "source_node": "Source Node",
+              "dest_node": "Destination Node",
               "Value": "Latency (ms)"
-            }
-          }
-        },
-        {
-          "id": "groupBy",
-          "options": {
-            "fields": {
-              "Destination": {
-                "aggregations": [],
-                "operation": "groupby"
-              },
-              "Latency (ms)": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
-                "operation": "aggregate"
-              },
-              "Source": {
-                "aggregations": [],
-                "operation": "groupby"
-              }
-            }
-          }
-        },
-        {
-          "id": "pivot",
-          "options": {
-            "columnField": "Destination",
-            "rowFields": [
-              "Source"
-            ],
-            "valueField": "Latency (ms) (lastNotNull)"
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {},
-            "indexByName": {},
-            "renameByName": {
-              "Source": "Node"
             }
           }
         }
       ],
       "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Matrix layout showing latency from node1 to all destinations",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "ddarp_owl_latency_ms{source_node=\"node1\",dest_node=\"node1\"} or vector(0)",
+          "interval": "",
+          "legendFormat": "node1→node1",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "ddarp_owl_latency_ms{source_node=\"node1\",dest_node=\"node2\"}",
+          "interval": "",
+          "legendFormat": "node1→node2",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "ddarp_owl_latency_ms{source_node=\"node1\",dest_node=\"node3\"}",
+          "interval": "",
+          "legendFormat": "node1→node3",
+          "refId": "C"
+        }
+      ],
+      "title": "Matrix Row: node1 → [node1, node2, node3]",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Matrix layout showing latency from node2 to all destinations",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "ddarp_owl_latency_ms{source_node=\"node2\",dest_node=\"node1\"}",
+          "interval": "",
+          "legendFormat": "node2→node1",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "ddarp_owl_latency_ms{source_node=\"node2\",dest_node=\"node2\"} or vector(0)",
+          "interval": "",
+          "legendFormat": "node2→node2",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "ddarp_owl_latency_ms{source_node=\"node2\",dest_node=\"node3\"}",
+          "interval": "",
+          "legendFormat": "node2→node3",
+          "refId": "C"
+        }
+      ],
+      "title": "Matrix Row: node2 → [node1, node2, node3]",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Matrix layout showing latency from node3 to all destinations",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "ddarp_owl_latency_ms{source_node=\"node3\",dest_node=\"node1\"}",
+          "interval": "",
+          "legendFormat": "node3→node1",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "ddarp_owl_latency_ms{source_node=\"node3\",dest_node=\"node2\"}",
+          "interval": "",
+          "legendFormat": "node3→node2",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "ddarp_owl_latency_ms{source_node=\"node3\",dest_node=\"node3\"} or vector(0)",
+          "interval": "",
+          "legendFormat": "node3→node3",
+          "refId": "C"
+        }
+      ],
+      "title": "Matrix Row: node3 → [node1, node2, node3]",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -239,7 +468,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 12
+        "y": 24
       },
       "id": 2,
       "options": {
@@ -346,7 +575,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 12
+        "y": 24
       },
       "id": 3,
       "options": {
@@ -480,7 +709,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 32
       },
       "id": 4,
       "options": {
